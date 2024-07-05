@@ -1,0 +1,11 @@
+---
+title: "Balanceo de Datos"
+author: "Paúl Arévalo, Esteban Vizhñay"
+date: "2024-07-04"
+output: 
+  pdf_document:
+    extra_dependencies: ["fvextra"]
+    includes:
+      in_header: header.tex
+---
+
