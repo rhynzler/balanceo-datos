@@ -1,11 +1,149 @@
 ---
-title: "Balanceo de Datos"
-author: "Paúl Arévalo, Esteban Vizhñay"
+title: "Maestría en Ciencia de Datos"
+subtitle: "Balanceo de Datos"
+author: "Paúl Arévalo"
 date: "2024-07-04"
 output: 
   pdf_document:
+    latex_engine: xelatex
     extra_dependencies: ["fvextra"]
     includes:
       in_header: header.tex
 ---
+
+# Balanceo de Datos
+
+## Carga de datos y visualización de la estructura
+
+```{r}
+library(readr)
+datos <- read_delim("Datos.csv",
+  delim = ";",
+  escape_double = FALSE, trim_ws = TRUE
+)
+```
+
+```{r}
+head(datos)
+```
+
+```{r}
+summary(datos)
+```
+
+```{r}
+str(datos)
+```
+
+Exploración de cada variable
+
+```{r}
+skimr::skim(datos)
+```
+
+## Verificar si existe un desbalance en los datos
+
+```{r}
+table(datos$Desafiliado)
+```
+
+```{r}
+prop.table(table(datos$Desafiliado))
+```
+
+Se puede ver que existe un desbalanceo de datos con respecto a la variable Desafiliado
+
+```{r}
+barplot(prop.table(table(datos$Desafiliado)),
+  col = rainbow(2),
+  ylim = c(0, 1),
+  main = "Distribución de Clases"
+)
+```
+
+# Balanceo - Oversampling
+
+```{r}
+prop.table(table(datos$Desafiliado))
+```
+
+Cantidad de observaciones en desafiliado que son Desafiliado = no
+
+```{r}
+table(datos$Desafiliado)[1]
+```
+
+```{r}
+library(ROSE)
+```
+
+```{r}
+desafilado_bal_over <- ovun.sample(Desafiliado ~ .,
+  data = datos, method = "over",
+  N = table(datos$Desafiliado)[1] * 2
+)$data
+table(desafilado_bal_over$Desafiliado)
+```
+
+```{r}
+head(desafilado_bal_over)
+```
+
+## Balanceo - Undersampling
+
+Cantidad de observaciones en desafilado_train que son Desafiliado = yes
+
+```{r}
+table(datos$Desafiliado)[2]
+```
+
+```{r}
+desafilado_bal_under <- ovun.sample(Desafiliado ~ .,
+  data = datos, method = "under",
+  N = table(datos$Desafiliado)[2] * 2
+)$data
+table(desafilado_bal_under$Desafiliado)
+```
+
+## Undersampling y Oversampling
+
+Cantidad de observaciones en el conjunto de datos
+
+```{r}
+dim(datos)[1]
+```
+
+```{r}
+desafilado_bal_ambos <- ovun.sample(Desafiliado ~ .,
+  data = datos,
+  method = "both",
+  p = 0.5,
+  N = dim(datos)[1],
+  seed = 1
+)$data
+# p es la prob. de la clase positiva en la nueva muestra generada
+table(desafilado_bal_ambos$Desafiliado)
+```
+
+```{r}
+prop.table(table(desafilado_bal_ambos$Desafiliado))
+```
+
+## SMOTE
+
+```{r}
+library(DMwR)
+```
+
+```{r}
+set.seed(2019) # Para tener resultados reproducibles
+datos <- as.data.frame(datos)
+datos$Plan_Internacional <- as.factor(datos$Plan_Internacional)
+datos$Desafiliado <- as.factor(datos$Desafiliado)
+desafilado_bal_smote <- SMOTE(Desafiliado ~ ., datos,
+  perc.over = 200, k = 5,
+  perc.under = 100
+)
+table(desafilado_bal_smote$Desafiliado)
+```
 
